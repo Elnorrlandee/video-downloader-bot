@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
 
-TOKEN = os.getenv('TOKEN')  # مهم: سنجعله من Railway
+TOKEN = os.getenv('8653368549:AAGTMq7SwcMqiHXlkAwWTRf_hLUaKP8WD4I')  # مهم: سنجعله من Railway
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
