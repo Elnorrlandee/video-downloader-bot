@@ -12,7 +12,11 @@ if not TOKEN:
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text('🎥 مرحبا!\nأرسل أي رابط فيديو (يوتيوب، تويتر، تيك توك، إنستغرام...)')
+    await update.message.reply_text(
+        '🎥 مرحبا!\n'
+        'أرسل رابط فيديو من أي موقع.\n'
+        'ملاحظة: بعض روابط X تحتاج كوكيز.'
+    )
 
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
@@ -20,26 +24,21 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text('❌ أرسل رابط صحيح')
         return
 
-    msg = await update.message.reply_text('⏳ جاري المعالجة...')
+    msg = await update.message.reply_text('⏳ جاري التحميل...')
 
     try:
         ydl_opts = {
             'outtmpl': '%(title)s.%(ext)s',
             'format': 'best[height<=480]/best',
             'noplaylist': True,
+            'cookiefile': 'cookies.txt',   # ← دعم الكوكيز
             'extractor_args': {
-                'youtube': {
-                    'player_client': ['ios', 'web', 'android', 'web_creator'],
-                    'skip': ['dash', 'hls']
-                },
+                'youtube': {'player_client': ['ios', 'web', 'android']},
                 'twitter': {'skip': ['dash']},
             },
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             },
-            'quiet': False,
-            'no_warnings': False,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -53,14 +52,10 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             os.remove(filename)
             await msg.delete()
         else:
-            await msg.edit_text('❌ لم يتم تحميل الملف')
+            await msg.edit_text('❌ فشل التحميل')
 
     except Exception as e:
-        error = str(e).lower()
-        if "sign in" in error or "bot" in error or "cookie" in error:
-            await msg.edit_text('❌ يوتيوب/تويتر يحتاج كوكيز.\nسنحلها قريباً بطريقة الكوكيز.')
-        else:
-            await msg.edit_text(f'❌ خطأ: {str(e)[:250]}')
+        await msg.edit_text(f'❌ خطأ: {str(e)[:200]}')
 
 def main():
     app = Application.builder().token(TOKEN).build()
